@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!-- Two mass jumper -->
+<robot name="tmj" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Constants for robot dimensions -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="body_mass" value="5" />
+  <xacro:property name="body_width" value="0.15" />
+  <xacro:property name="body_height" value="0.3" />
+
+  <xacro:property name="foot_mass" value="1.1" />
+  <xacro:property name="foot_width" value="0.8" />
+  <xacro:property name="foot_height" value="0.05" />
+
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <xacro:include filename="$(find tmj_description)/urdf/tmj.gazebo" />
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find tmj_description)/urdf/materials.xacro" />
+
+  <!-- Used for fixing robot to Gazebo 'base_link' -->
+  <!-- <link name="world"/>
+
+  <joint name="one_dof" type="prismatic">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <parent link="world"/>
+    <child link="foot"/>
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="0" lower="-100" upper="100" velocity="1000"/>
+    <safety_controller k_position="0" k_velocity="0" soft_lower_limit="-100" soft_upper_limit="100"/>
+  </joint> -->
+  
+  <link name='body'>
+    <collision name='collision'>
+      <origin xyz="0 0 ${body_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_width} ${body_width} ${body_height}" />
+      </geometry>
+    </collision>
+    
+    <visual name='visual'>
+      <origin xyz="0 0 ${body_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${body_width} ${body_width} ${body_height}" />
+      </geometry>
+    </visual>
+    
+    <inertial name='inertial'>
+      <origin xyz="0 0 ${body_height/2}" rpy="0 0 0"/>
+      <mass value="${body_mass}" />
+      <inertia ixx="${1/12*body_mass*(body_height*body_height+body_width*body_width)}" ixy="0" ixz="0"
+          iyy="${1/12*body_mass*(body_height*body_height+body_width*body_width)}" iyz="0"
+          izz="${1/6*body_mass*body_width*body_width}" />
+    </inertial>
+  </link>
+
+  <link name='foot'>
+    <collision name='collision'>
+      <origin xyz="0 0 ${foot_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${foot_width} ${foot_width} ${foot_height}" />
+      </geometry>
+    </collision>
+    
+    <visual name='visual'>
+      <origin xyz="0 0 ${foot_height/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${foot_width} ${foot_width} ${foot_height}" />
+      </geometry>
+    </visual>
+    
+    <inertial name='inertial'>
+      <origin xyz="0 0 ${foot_height/2}" rpy="0 0 0"/>
+      <mass value="${foot_mass}" />
+      <inertia ixx="${1/12*foot_mass*(foot_height*foot_height+foot_width*foot_width)}" ixy="0" ixz="0"
+          iyy="${1/12*foot_mass*(foot_height*foot_height+foot_width*foot_width)}" iyz="0"
+          izz="${1/6*foot_mass*foot_width*foot_width}" />
+    </inertial>
+  </link>
+  
+  
+  <!-- Joints -->  
+  <joint name="spring_axis" type="prismatic">
+    <origin xyz="0 0 ${foot_height}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <parent link="foot"/>
+    <child link="body"/>
+    <dynamics damping="0.1" friction="0.0"/>
+    <limit effort="2000" lower="0" upper="2" velocity="12"/>
+    <safety_controller k_position="100" k_velocity="10" soft_lower_limit="0.05" soft_upper_limit="1.95"/>
+  </joint>
+
+  <transmission name="spring_axis_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="spring_axis"/>
+    <actuator name="spring">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+</robot>

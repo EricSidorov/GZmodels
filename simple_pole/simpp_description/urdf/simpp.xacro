@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!-- Simple Pole -->
+<robot name="simple_pole" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Constants for robot dimensions -->
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="pole_length" value="1" />
+  <xacro:property name="pole_mass" value="0.5" />
+  <xacro:property name="pole_width" value="0.05" />
+
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <xacro:include filename="$(find simpp_description)/urdf/simpp.gazebo" />
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find simpp_description)/urdf/materials.xacro" />
+
+  <!-- Used for fixing robot to Gazebo 'base_link' -->
+  <link name="world"/>
+
+  <joint name="fixed" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
+  
+  <link name='base_link'>
+    <collision name='collision'>
+      <origin xyz="0 0 ${1.1*pole_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${pole_width} ${pole_width} ${1.1*pole_length}" />
+      </geometry>
+    </collision>
+    
+    <visual name='visual'>
+      <origin xyz="0 0 ${1.1*pole_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${pole_width} ${pole_width} ${1.1*pole_length}" />
+      </geometry>
+    </visual>
+    
+    <inertial name='inertial'>
+      <origin xyz="0 0 ${1.1*pole_length/2}" rpy="0 0 0"/>
+      <mass value="${1.1*pole_mass}" />
+      <inertia ixx="${1/12*1.1*pole_mass*(1.1*pole_length*1.1*pole_length+pole_width*pole_width)}" ixy="0" ixz="0"
+          iyy="${1/12*1.1*pole_mass*(1.1*pole_length*1.1*pole_length+pole_width*pole_width)}" iyz="0"
+          izz="${1/6*1.1*pole_mass*pole_width*pole_width}" />
+    </inertial>
+  </link>
+  
+  <link name='pole'>
+    <collision name='collision'>
+      <origin xyz="0 0 ${-pole_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${pole_width} ${pole_width} ${pole_length}" />
+      </geometry>
+    </collision>
+    
+    <visual name='visual'>
+      <origin xyz="0 0 ${-pole_length/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${pole_width} ${pole_width} ${pole_length}" />
+      </geometry>
+    </visual>
+    
+    <inertial name='inertial'>
+      <origin xyz="0 0 ${-pole_length/2}" rpy="0 0 0"/>
+      <mass value="${pole_mass}" />
+      <inertia ixx="${1/12*pole_mass*(pole_length*pole_length+pole_width*pole_width)}" ixy="0" ixz="0"
+          iyy="${1/12*pole_mass*(pole_length*pole_length+pole_width*pole_width)}" iyz="0"
+          izz="${1/6*pole_mass*pole_width*pole_width}" />
+    </inertial>
+  </link>
+  
+  
+  <!-- Joints -->  
+  <joint name="pole_axis" type="revolute">
+    <origin xyz="0 ${-pole_width} ${1.1*pole_length}" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <parent link="base_link"/>
+    <child link="pole"/>
+    <dynamics damping="0.1" friction="0.0"/>
+    <limit effort="2000" lower="-157" upper="157" velocity="12"/>
+    <safety_controller k_position="100" k_velocity="10" soft_lower_limit="-156" soft_upper_limit="156"/>
+  </joint>
+
+  <transmission name="axis_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="pole_axis"/>
+    <actuator name="pole_motor">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+</robot>

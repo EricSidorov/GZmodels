@@ -1,0 +1,18 @@
+odh:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 1000  
+  # Effort Controllers ---------------------------------------
+  spring_effort_controller:
+    type: effort_controllers/JointEffortController
+    joint: spring_axis
+  piston_effort_controller:
+    type: effort_controllers/JointEffortController
+    joint: piston_axis
+
+EffPosCon:
+  spring_axis:
+      params: {P: 100.0, I: 0.0, D: 0.0}
+  piston_axis:
+      params: {P: 200.0, I: 0.0, D: 10.0}
